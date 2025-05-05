@@ -1,47 +1,32 @@
-# Je NUTNÉ nainštalovať alíček: do konzoly napíšte "pip install flask"
-from flask import Flask, request
+from flask import Flask, request, render_template
 import sqlite3
 import hashlib
+
 app = Flask(__name__)
 
-# Pripojenie k databáze
 def pripoj_db():
     conn = sqlite3.connect("kurzy.db")
     return conn
 
 
-@app.route('/')  # API endpoint
+@app.route('/')  
 def index():
-    # Úvodná stránka s dvoma tlačidami ako ODKAZMI na svoje stránky - volanie API nedpointu
+    # Úvodná homepage s dvoma tlačidami ako ODKAZMI na svoje stránky - volanie API nedpointu
     return '''
         <h1>Výber z databázy</h1>
         <a href="/kurzy"><button>Zobraz všetky kurzy</button></a>
         <a href="/treneri"><button>Zobraz všetkých trénerov</button></a>
-        <a href="/miesta"><button>Zobraz všetky miesta</button></a>
-        <a href="/maxkapacity"><button>Zobraz maximálnu kapacitu</button></a>
-        <a href="/registracia"><button>Registruj</button></a>
+        <a href="/miesta"><button>Zobraz miesta</button></a>
+        <a href="/kapacity"><button>Zobraz kapacitu</button></a>
+        <a href="/registracia"><button>Registruj Trenéra</button></a>
+        <a href="/prida_kurz"><button>Pridanie kurzu</button></a>
         <hr>
-        
     '''
-@app.route('/maxkapacity') 
-def zobraz_kapacity():
-    conn = pripoj_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT sum(Max_pocet_ucastnikov) FROM Kurzy where Nazov_kurzu LIKE 'p%'")
-    maxkapacity = cursor.fetchall()
-
-    conn.close()
-
-    # Jednoduchý textový výpis kurzov
-    vystup = "<h2>Zobraz maximálne kapacity:</h2>"
-    for max_kapacita in maxkapacity:
-        vystup += f"<p>{max_kapacita}</p>"
-
-    # Odkaz na návrat
-    vystup += '<a href="/">Späť</a>'
-    return vystup
 
 
+
+
+# PODSTRÁNKA NA ZOBRAZENIE KURZOV
 @app.route('/kurzy')  # API endpoint
 def zobraz_kurzy():
     conn = pripoj_db()
@@ -51,15 +36,7 @@ def zobraz_kurzy():
     kurzy = cursor.fetchall()
 
     conn.close()
-
-    # Jednoduchý textový výpis kurzov
-    vystup = "<h2>Zoznam kurzov:</h2>"
-    for kurz in kurzy:
-        vystup += f"<p>{kurz}</p>"
-
-    # Odkaz na návrat
-    vystup += '<a href="/">Späť</a>'
-    return vystup
+    return render_template("kurzy.html" , kurzy=kurzy)
 
 
 
@@ -77,27 +54,23 @@ def zobraz_trenerov():
 
     conn.close()
 
-    # Jednoduchý textový výpis trénerov a ich kurzov
-    vystup = "<h2>Zoznam trénerov a kurzov:</h2>"
-    for trener in treneri:
-        vystup += f"<p>{trener}</p>"
-
-    # Odkaz na návrat
-    vystup += '<a href="/">Späť</a>'
-    return vystup
 
 
-@app.route('/miesta') 
+
+
+@app.route('/miesta')  # API endpoint
 def zobraz_miesta():
     conn = pripoj_db()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT Nazov_miesta FROM Miesta")
+    cursor.execute("""
+        SELECT Nazov_miesta FROM Miesta
+    """)
     miesta = cursor.fetchall()
 
     conn.close()
 
-    # Jednoduchý textový výpis kurzov
+    # Jednoduchý textový výpis miest
     vystup = "<h2>Zoznam miest:</h2>"
     for miesto in miesta:
         vystup += f"<p>{miesto}</p>"
@@ -107,29 +80,58 @@ def zobraz_miesta():
     return vystup
 
 
-# STRÁNKA S FORMULÁROM NA REGISTRÁCIU TRÉNERA. Vráti HTML formulár s elementami
-# Metóda je GET. (Predtým sme metódu nedefinovali. Ak žiadnu neuvedieme, automaticky je aj tak GET)
+
+
+
+@app.route('/kapacity')  # API endpoint
+def vypis_kapacity():
+    conn = pripoj_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT sum(Max_pocet_ucastnikov) FROM Kurzy where Nazov_kurzu LIKE 'p%'
+    """)
+    kapacity = cursor.fetchall()
+
+    conn.close()
+
+    # Jednoduchý textový výpis kapacity
+    vystup = "<h2>Zoznam miest:</h2>"
+    for kapacita in kapacity:
+        vystup += f"<p>{kapacita}</p>"
+
+    # Odkaz na návrat
+    vystup += '<a href="/">Späť</a>'
+    return vystup
+
+
+
+
 @app.route('/registracia', methods=['GET'])
 def registracia_form():
     return '''
-        <h2>Registrácia trénera</h2>
+        <h1>Registrácia trenéra</h1>
+
         <form action="/registracia" method="post">
+
             <label>Meno:</label><br>
             <input type="text" name="meno" required><br><br>
 
             <label>Priezvisko:</label><br>
             <input type="text" name="priezvisko" required><br><br>
 
-            <label>Špecializácia:</label><br>
-            <input type="text" name="specializacia" required><br><br>
-
+            
             <label>Telefón:</label><br>
             <input type="text" name="telefon" required><br><br>
 
+            <label>Špecializácia:</label><br>
+            <input type="text" name="specializacia" required><br><br>
+
             <label>Heslo:</label><br>
-            <input type="password" name="heslo" required><br><br>
+            <input type="text" name="heslo" required><br><br>
 
             <button type="submit">Registrovať</button>
+
         </form>
         <hr>
         <a href="/">Späť</a>
@@ -140,20 +142,20 @@ def registracia_form():
 # Pozor - metóda je POST
 @app.route('/registracia', methods=['POST'])
 def registracia_trenera():
+
     meno = request.form['meno']
     priezvisko = request.form['priezvisko']
     specializacia = request.form['specializacia']
-    telefon = request.form['telefon']
+    telc = request.form['telefon']
     heslo = request.form['heslo']
+    hashed = hashlib.sha256(heslo.encode()).hexdigest()
 
-    # Hashovanie hesla
-    heslo_hash = hashlib.sha256(heslo.encode()).hexdigest()
 
     # Zápis do databázy
     conn = pripoj_db()
     cursor = conn.cursor()
     cursor.execute("INSERT INTO Treneri (Meno, Priezvisko, Specializacia, Telefon, Heslo) VALUES (?, ?, ?, ?, ?)", 
-                   (meno, priezvisko, specializacia, telefon, heslo_hash))
+                   (meno, priezvisko, specializacia, telc, hashed))
     conn.commit()
     conn.close()
 
@@ -165,12 +167,83 @@ def registracia_trenera():
     '''
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route('/prida_kurz', methods=['GET'])
+def pridaj_form():
+    return '''
+        <h1>Pridanie kurzu</h1>
+
+        <form action="/prida_kurz" method="post">
+
+        
+            <label>Názov kurzu:</label><br>
+            <input type="text" name="nazov_kurzu" required><br><br>
+
+            <label>Typ športu:</label><br>
+            <input type="text" name="typ_sportu" required><br><br>
+
+            <label>Max počet účastníkov:</label><br>
+            <input type="text" name="max_pocet_ucastnikov" required><br><br>
+
+            <label>ID trenéra:</label><br>
+            <input type="text" name="id_trenera" required><br><br>
+
+            <button type="submit">Pridať</button>
+
+        </form>
+        <hr>
+        <a href="/">Späť</a>
+    '''
+
+
+def sifrovanie(text):
+    vety=""
+    A=5
+    B=8
+    for X in text:
+        X = X.upper()
+
+        cislopismena = ord(X) - ord('A')
+
+        sifrovanie = (A*cislopismena+B)%26
+
+        pismeno = chr(sifrovanie+ ord('A'))
+        vety+=pismeno
+
+    return vety
+
+
+
+
+@app.route('/prida_kurz', methods=['POST'])
+def pridaj_kurz():
+
+
+    nazov_kurzu = request.form['nazov_kurzu']
+    typ_sportu = request.form['typ_sportu']
+    max_pocet_ucastnikov = request.form['max_pocet_ucastnikov']
+    id_trenera = request.form['id_trenera']
+    sifra_nazov = sifrovanie(nazov_kurzu)
+    sifra_typ = sifrovanie(typ_sportu)
+
+    
+
+    conn = pripoj_db()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Kurzy ( Nazov_kurzu, Typ_sportu, Max_pocet_ucastnikov, ID_trenera) VALUES ( ?, ?, ?, ?)", 
+                   ( sifra_nazov, sifra_typ, max_pocet_ucastnikov, id_trenera))
+    conn.commit()
+    conn.close()
+
+
+    return '''
+        <h2>Kurz bol úspešne pridaný!</h2>
+        <hr>
+        <a href="/">Späť</a>
+    '''
 
 
 
 if __name__ == '__main__':
     app.run(debug=True)
 
-
+# Aplikáciu spustíte, keď do konzoly napíšete "python app.py"
