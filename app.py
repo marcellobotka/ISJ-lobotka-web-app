@@ -70,15 +70,6 @@ def zobraz_miesta():
 
     conn.close()
 
-    # Jednoduchý textový výpis miest
-    vystup = "<h2>Zoznam miest:</h2>"
-    for miesto in miesta:
-        vystup += f"<p>{miesto}</p>"
-
-    # Odkaz na návrat
-    vystup += '<a href="/">Späť</a>'
-    return vystup
-
 
 
 
@@ -94,15 +85,6 @@ def vypis_kapacity():
     kapacity = cursor.fetchall()
 
     conn.close()
-
-    # Jednoduchý textový výpis kapacity
-    vystup = "<h2>Zoznam miest:</h2>"
-    for kapacita in kapacity:
-        vystup += f"<p>{kapacita}</p>"
-
-    # Odkaz na návrat
-    vystup += '<a href="/">Späť</a>'
-    return vystup
 
 
 
