@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request
 import sqlite3
 import hashlib
 
@@ -36,7 +36,15 @@ def zobraz_kurzy():
     kurzy = cursor.fetchall()
 
     conn.close()
-    return render_template("kurzy.html" , kurzy=kurzy)
+
+    
+    vystup = "<h2>Zoznam kurzov:</h2>"  
+    for kurz in kurzy:
+        vystup += f"<p>{kurz}</p>"      
+
+    # Odkaz na návrat
+    vystup += '<a href="/">Späť</a>'   
+    return vystup
 
 
 
@@ -54,6 +62,14 @@ def zobraz_trenerov():
 
     conn.close()
 
+    # Jednoduchý textový výpis trénerov a ich kurzov
+    vystup = "<h2>Zoznam trénerov a kurzov:</h2>"
+    for trener in treneri:
+        vystup += f"<p>{trener}</p>"
+
+    # Odkaz na návrat
+    vystup += '<a href="/">Späť</a>'
+    return vystup
 
 
 
@@ -70,6 +86,15 @@ def zobraz_miesta():
 
     conn.close()
 
+    # Jednoduchý textový výpis miest
+    vystup = "<h2>Zoznam miest:</h2>"
+    for miesto in miesta:
+        vystup += f"<p>{miesto}</p>"
+
+    # Odkaz na návrat
+    vystup += '<a href="/">Späť</a>'
+    return vystup
+
 
 
 
@@ -85,6 +110,15 @@ def vypis_kapacity():
     kapacity = cursor.fetchall()
 
     conn.close()
+
+    # Jednoduchý textový výpis kapacity
+    vystup = "<h2>Zoznam miest:</h2>"
+    for kapacita in kapacity:
+        vystup += f"<p>{kapacita}</p>"
+
+    # Odkaz na návrat
+    vystup += '<a href="/">Späť</a>'
+    return vystup
 
 
 
