@@ -6,3 +6,8 @@ h2 {
     margin-top: 40px;
     text-transform: uppercase;
 }
+
+p {
+    color: green;
+    font-family: sans-serif;
+}
