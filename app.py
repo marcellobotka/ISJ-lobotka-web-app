@@ -4,10 +4,10 @@ import sqlite3
 import hashlib
 import os
 
-from flask import g session
+from flask import g, session
 from i18n import TRANSLATIONS, SUPPORTED
 
-app = flask (__name__)
+app = Flask (__name__)
 app.sectret_key = "tajny_kluc"
 
 app = Flask(__name__, instance_relative_config=True)
@@ -17,6 +17,18 @@ db_path = os.path.join(app.instance_path, "kurzy.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}".replace("\\", "/")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
+
+@app.before_request
+def set_lang():
+    lang = request.args.get("lang")
+    if lang not in SUPPORTED:
+        lang = session.get("lang", "sk")
+    session["lang"] = lang
+    g.t = TRANSLATIONS[lang]
+
+@app.context_processor
+def inject_translations():
+    return dict(t=g.t)
 
 def pripoj_db():
     conn = sqlite3.connect("kurzy.db")

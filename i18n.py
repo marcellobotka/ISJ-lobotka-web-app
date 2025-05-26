@@ -1,10 +1,10 @@
 TRANSLATIONS = {
     "sk": {
-        "courses_list": "Zoznam kurzov"
+        "courses_list": "Zoznam kurzov",
         "back": "Späť"
     },
     "en": {
-        "courses_list": "Cours list"
+        "courses_list": "Cours list",
         "back": "Back"
     }
 }
