@@ -1,8 +1,16 @@
 from flask import Flask, request,render_template
+from flask_sqlalchemy import SQLAlchemy
 import sqlite3
 import hashlib
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, instance_relative_config=True)
+
+db_path = os.path.join(app.instance_path, "kurzy.db")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}".replace("\\", "/")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
 
 def pripoj_db():
     conn = sqlite3.connect("kurzy.db")
@@ -23,12 +31,22 @@ def index():
         <hr>
     '''
 
+class Kurz(db.Model):
+    __tablename__ = "Kurzy"
+    ID_kurzu                = db.Column(db.Integer, primary_key=True)
+    Nazov_kurzu             = db.Column(db.String, nullable=False)
+    Typ_sportu              = db.Column(db.String)
+    Max_pocet_ucastnikov    = db.Column(db.Integer)
+    ID_trenera              = db.Column(db.Integer)
 
-
+    def __repr_(self):
+        return f"<Kurz {self.Nazov_kurzu}>"
 
 # PODSTRÁNKA NA ZOBRAZENIE KURZOV
 @app.route('/kurzy')  # API endpoint
 def zobraz_kurzy():
+    
+    """
     conn = pripoj_db()
     cursor = conn.cursor()
 
@@ -37,6 +55,12 @@ def zobraz_kurzy():
 
     conn.close()
     return render_template("kurzy.html" , kurzy=kurzy)
+
+    TOTO JE UZ NEPOTREBNY KOD
+    """
+
+    kurzy = Kurz.query.all()
+    return render_template("kurzy.html", kurzy=kurzy)
 
 
 
@@ -54,6 +78,7 @@ def zobraz_trenerov():
 
     conn.close()
     return render_template("treneri.html" , treneri=treneri)
+
 
 
 
