@@ -7,10 +7,8 @@ import os
 from flask import g, session
 from i18n import TRANSLATIONS, SUPPORTED
 
-app = Flask (__name__)
-app.sectret_key = "tajny_kluc"
-
 app = Flask(__name__, instance_relative_config=True)
+app.secret_key = "tajny_kluc"
 
 db_path = os.path.join(app.instance_path, "kurzy.db")
 
