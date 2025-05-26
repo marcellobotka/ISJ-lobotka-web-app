@@ -1,8 +1,14 @@
-from flask import Flask, request,render_template
+from flask import Flask, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 import sqlite3
 import hashlib
 import os
+
+from flask import g session
+from i18n import TRANSLATIONS, SUPPORTED
+
+app = flask (__name__)
+app.sectret_key = "tajny_kluc"
 
 app = Flask(__name__, instance_relative_config=True)
 
